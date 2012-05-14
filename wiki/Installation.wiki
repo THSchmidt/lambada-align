@@ -21,7 +21,7 @@ cp -r lambada/ ~/lib/
 }}}
 
 Make LAMBADA executable:
-{{
+{{{
 chmod 755 ~/lib/lambada/lambada
 }}}
 
