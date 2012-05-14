@@ -2,18 +2,17 @@
 
 = Installation =
 
-== Download ==
-Download LAMBADA from our [http://code.google.com/p/lambada-align/ Google code project] website:
+== Linux ==
 
-unpack the LAMBADA archive
+=== Download ===
+Download the LAMBADA archive from the [http://code.google.com/p/lambada-align/downloads/list project download] website:
+
+=== Unpack ===
+LAMBADA is available as compressed `tar.gz` archive.
+Extract the files to your `lib` directory:
+{{{ tar -xvzf lambada.tar.gz }}}
+
+
 Copy the folder to your lib directory (e.g. cp -r lambada/ ~/lib)
 Make LAMBADA executable (e.g. chmod 755 ~/lib/lambada/lambada)
 Set a soft link to the LAMBADA executable (e.g. ln -s ~/lib/lambada/lambada ~/bin/lambada)
-
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
