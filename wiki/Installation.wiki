@@ -12,9 +12,9 @@ Extract the files of the compressed `tar.gz` archive:
 {{{
 tar -xvzf lambada.tar.gz
 }}}
-LAMBADA should work already now. The following steps for installation are optional.
+LAMBADA should work already now by typing `perl lambada/lambada`.
 
-=== Further Installation ===
+=== Optional Installation Steps ===
 Copy the folder into your `lib` directory:
 {{{
 cp -r lambada/ ~/lib/
