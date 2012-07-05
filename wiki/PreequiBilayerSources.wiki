@@ -1,7 +1,7 @@
 #summary A list of sources for pre-equilibrated membrane patches and forcefield parameters.
 #labels Pre-equilibrated,membrane,phospholipid,bilayer,patch,list,simulation,GROMACS
 
-= Pre-equilibrated Membrane Patches =
+= Pre-equilibrated Membrane Patches & Topologies =
 
 Here is a list of sources for pre-equilibrated membranes and forcefield parameters.
 Comments for further completion are welcome.
