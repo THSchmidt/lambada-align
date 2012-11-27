@@ -61,6 +61,7 @@ my $thicknHphobic = 2.4;                  # The width of the hydrophobic belt.
 #my $membThickness = 4.86;                 # ...if it could not be measured.
 my $isTMProt      = 1;
 my $helpAndQuit   = 0;                    # Print out program help.
+my $xWater        = 0;                    # Enable support of crystal water in the protein structure.
 #my @rotAngs       = (0, 90, 0, 90);
 ################################################################################
 
@@ -71,7 +72,8 @@ my $helpAndQuit   = 0;                    # Print out program help.
 my %protData;         # Filled by "GROFiles::readGro(<GROFILE>)".
 my %membData;         # Filled by "GROFiles::readGro(<GROFILE>)".
 my @membNdxData;      # Filled by "NDXFiles::readNdx(<NDXFILE>)".
-my @membHeadGroupIds; # Filled by "NDXFiles::selectGroupIds(...)".
+my @membGroupIds;     # Filled by "NDXFiles::selectGroupIds(...)".
+my @selMembAtomIds;   # A list of atom IDs encoding the membrane atoms.
 
 
 my $membZCenter = 0;
@@ -129,6 +131,7 @@ Cmdline::addCmdlParam('flag', 'planes', 'bool', \$withPlanes, $withPlanes ? 'yes
 Cmdline::addCmdlParam('flag', 'v', 'bool', \$verbose, $verbose ? 'yes' : 'no', 'Be loud and noisy');
 Cmdline::addCmdlParam('scalar', 'bw', 'real', \$thicknHphobic, $thicknHphobic, 'Hydrophobic belt width (nm) (obsolete if a membrane NDX file is given)');
 Cmdline::addCmdlParam('scalar', 'lr', 'string', \$lipidResname, $lipidResname, 'Regex for the detection of the bilayer atoms of the membrane GRO file (obsolete if a membrane NDX file is given)');
+Cmdline::addCmdlParam('flag', 'xwater', 'bool', \$xWater, $xWater ? 'yes' : 'no', 'Keep water in the protein structure');
 
 Cmdline::parser();
 ################################################################################
@@ -155,21 +158,23 @@ printHelp(Cmdline::getCmdlParamRef(), 1) if $helpAndQuit;
 
 
 ### Get the membrane NDX data ##################################################
-#if ($membNdxInFile) {
-#    @membNdxData = NDXFiles::readNdx($membNdxInFile); # Read input NDX file.
-#    NDXFiles::printNdxGroups(@membNdxData);
-#    @membHeadGroupIds = selectGroupIds(\@membNdxData, 'membrane headgroups');
-#}
-#else {
-    @membNdxData = getAtomIdsByResname($membData{'atoms'}, $lipidResname);
-#    printHelp();
-#}
+if ($membNdxInFile) {
+    @membNdxData = NDXFiles::readNdx($membNdxInFile); # Read input NDX file.
+    NDXFiles::printNdxGroups(@membNdxData);
+    @membGroupIds = selectGroupIds(\@membNdxData, 'membrane headgroups');
+    foreach (@membGroupIds) {
+        push(@selMembAtomIds, @{$membNdxData[$_]{'atoms'}});
+    }
+}
+else {
+    @selMembAtomIds = getAtomIdsByResname($membData{'atoms'}, $lipidResname);
+}
 ################################################################################
 
 
 
 ### Detect the bilayer thickness ###############################################
-$membZCenter = getMembZCenter($membData{'atoms'}, \@membNdxData);
+$membZCenter = getMembZCenter($membData{'atoms'}, \@selMembAtomIds);
 
 #my @tmpArray = getBilayerThickness($membData{'atoms'}, $membNdxData[$membHeadGroupIds[0]]{'atoms'});
 #$membThickness  = $tmpArray[0];
@@ -194,7 +199,12 @@ if ($orient) {
         }
     }
     `echo q | make_ndx -f $protInFile -o $protNdxInFile`;
-    `echo 1 3 1 | editconf -f $protInFile -n $protNdxInFile -d 5 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
+    if ($xWater) {
+        `echo 0 3 0 | editconf -f $protInFile -n $protNdxInFile -d 5 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
+    }
+    else {
+        `echo 1 3 1 | editconf -f $protInFile -n $protNdxInFile -d 5 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
+    }
     ############################################################################
 
 
@@ -235,7 +245,12 @@ if ($orient) {
 
     ### Rotate the atomistic model #############################################
     `echo q | make_ndx -f oriented.princ.gro -o temp.ndx`;
-    `echo 3 1 | editconf -f oriented.princ.gro -n temp.ndx -d 2 -rotate $absMinScore{'xRotAng'} $absMinScore{'yRotAng'} 0 -o oriented.final.gro 1>> editconf.log 2>> editconf.log`;
+    if ($xWater) {
+        `echo 3 0 | editconf -f oriented.princ.gro -n temp.ndx -d 2 -rotate $absMinScore{'xRotAng'} $absMinScore{'yRotAng'} 0 -o oriented.final.gro 1>> editconf.log 2>> editconf.log`;
+    }
+    else {
+        `echo 3 1 | editconf -f oriented.princ.gro -n temp.ndx -d 2 -rotate $absMinScore{'xRotAng'} $absMinScore{'yRotAng'} 0 -o oriented.final.gro 1>> editconf.log 2>> editconf.log`;
+    }
     `rm temp.ndx`;
     ############################################################################
 
@@ -1039,7 +1054,7 @@ sub selectGroupIds {
             push(@selectGroupIds, $1);
             print "    Added group $1.\n";
             return @selectGroupIds if scalar(@selectGroupIds) == $nGroups;
-            print "  Do you want to select another group? (\'q\' for quit) > ";
+            print "  Would you like to select another group? (\'q\' for quit) > ";
         }
         else {
             print "    Invalid group...\n  Please try to select a group for $groupNameText again (\'q\' for quit): > ";
@@ -1211,6 +1226,7 @@ sub buildCgProt {
     ### Get CG-coordinates #################################
     for (my $residue=0; $residue<@resAtoms; $residue++) {
         next unless $resAtoms[$residue];
+        next if $$coordDataRef[ $resAtoms[$residue][0] ]{'resName'} =~ /HOH/;
         my %resGeoCenter = getGeoCenter($resAtoms[$residue], $coordDataRef);
         my $resName = 'UNC';
         $resName = 'CHA' if $$coordDataRef[ $resAtoms[$residue][0] ]{'resName'} =~ /ARG|HIS|LYS|ASP|GLU/;
@@ -1433,5 +1449,50 @@ sub orientPrinc {
 #    for(i=0; i<natoms; i++) {
 #        rvec_inc(x[i],xcm);
 #    }
+}
+################################################################################
+
+
+
+###############################################################################
+### NDXFiles ##################################################################
+###############################################################################
+package NDXFiles;
+
+sub readNdx {
+    my $ndxFile = shift;
+    my @ndxData;
+    my $groupId = -1;
+
+    my $tmpAtomList = '';
+
+    print "  ---------------------------------\n  Read NDX file \"$ndxFile\"...\r";
+    print "\n" if $main::verbose;
+    open(NDXFILE, "<$ndxFile") || die "ERROR: Cannot open NDX file \"$ndxFile\": $!\n";
+    while (<NDXFILE>) {
+        if ($_ =~ /^\s*((\d+\s+)+)/) {
+            my @tmpArray = split(/\s+/, $1);
+            push(@{$ndxData[$groupId]{'atoms'}}, @tmpArray);
+        }
+        elsif ($_ =~ /^\s*\[\s*(.+?)\s*\]\s*$/) {
+            $ndxData[++$groupId]{'groupName'} = $1;
+            @{$ndxData[$groupId]{'atoms'}} = ();
+            print "  Found " . ($groupId + 1) . " groups\r" if $main::verbose;
+        }
+    }
+    print "\n" if $main::verbose;
+    close NDXFILE;
+    print "  Read NDX file \"$ndxFile\": Finished\n  ---------------------------------\n\n";
+
+    return @ndxData;
+}
+
+
+
+sub printNdxGroups {
+    for (my $i=0; $i<@_; $i++) {
+        next unless $_[$i]{'groupName'} . "\n";
+        printf("%3d %-20s: %5d atoms\n", $i, $_[$i]{'groupName'}, scalar(@{$_[$i]{'atoms'}}));
+    }
 }
 ################################################################################
