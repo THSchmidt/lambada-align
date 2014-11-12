@@ -253,9 +253,19 @@ sub protein2Grid {
         my $tmpGridZ = sprintf("%d", round($$coordDataRef[$_]{'cooZ'} / $gridDeltaZ, 1));
 #        my $subrangeZ = sprintf("%d", round($radius / $gridDeltaZ, 1));
 #        print $subrangeZ . " " . ($radius / $gridDelta) . "\n"; exit;
-        my $subrangeX = sprintf("%d", round($radius / $gridDeltaX, 1));
-        my $subrangeY = sprintf("%d", round($radius / $gridDeltaY, 1));
+
+
+        ### Get the grid points the atom radius is able to span ################
+        my $subrangeX = $radius > $gridDeltaX ? sprintf("%d", round($radius / $gridDeltaX, 1)) : 0;
+#        my $subrangeX = sprintf("%d", round($radius / $gridDeltaX, 1));
+        my $subrangeY = $radius > $gridDeltaY ? sprintf("%d", round($radius / $gridDeltaY, 1)) : 0;
+#        my $subrangeY = sprintf("%d", round($radius / $gridDeltaY, 1));
         my $subrangeZ = $radius > $gridDeltaZ ? sprintf("%d", round($radius / $gridDeltaZ, 1)) : 0;
+#        my $subrangeZ = sprintf("%d", round($radius / $gridDeltaZ, 1));
+        ########################################################################
+#        my $subrangeX = sprintf("%d", round($radius / $gridDeltaX, 1));
+#        my $subrangeY = sprintf("%d", round($radius / $gridDeltaY, 1));
+#        my $subrangeZ = $radius > $gridDeltaZ ? sprintf("%d", round($radius / $gridDeltaZ, 1)) : 0;
 #        my $subrangeZ = 0;
 
         for (my $z=($tmpGridZ-$subrangeZ); $z<=($tmpGridZ+$subrangeZ); $z++) {
@@ -263,8 +273,8 @@ sub protein2Grid {
                 for (my $y=($tmpGridY-$subrangeY); $y<=($tmpGridY+$subrangeY); $y++) {
                     my $dx = $$coordDataRef[$_]{'cooX'} - $x * $gridDeltaX;
                     my $dy = $$coordDataRef[$_]{'cooY'} - $y * $gridDeltaY;
-                    my $dz = $$coordDataRef[$_]{'cooZ'} - $z * $gridDeltaZ;
                     next if ($dx*$dx + $dy*$dy) > $radius2;
+                    my $dz = $$coordDataRef[$_]{'cooZ'} - $z * $gridDeltaZ;
                     next if ($dx*$dx + $dz*$dz) > $radius2;
                     next if ($dy*$dy + $dz*$dz) > $radius2;
 

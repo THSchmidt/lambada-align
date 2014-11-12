@@ -52,7 +52,7 @@ my $orient        = 1;                    # Orient the protein.
 my $hsprofOutFile = '';                   # Output file of the hydrophilicity-surface score (profile).
 my $cavityExcl    = 1;                    # Exclude charged surface residue detection for protein internal volumes.
 my $gridDeltaZ    = 0.3;                  # Grid size to detect the area of the protein [nm].
-my $lipidResname  = '^POP[ACEG]?$';       # Regex for the automatic detection of lipid molecules in the membrane GRO file.
+my $lipidResname  = '^P[OI]P[ACEG]?$';    # Regex for the automatic detection of lipid molecules in the membrane GRO file.
 my $lsLandscape   = 0;                    # Determine and write out the energy landscape.
 my $angRangeLimit = 5;                    # For protein orientation: stop if recursive refinement of the rotation angle is less than this value.
 #my $nMembranes    = 1;
@@ -174,6 +174,7 @@ else {
 
 
 ### Detect the bilayer thickness ###############################################
+die "ERROR: no atoms found to determine the bilayer center.\nSorry...\n" unless @selMembAtomIds;
 $membZCenter = getMembZCenter($membData{'atoms'}, \@selMembAtomIds);
 
 #my @tmpArray = getBilayerThickness($membData{'atoms'}, $membNdxData[$membHeadGroupIds[0]]{'atoms'});
@@ -200,10 +201,10 @@ if ($orient) {
     }
     `echo q | make_ndx -f $protInFile -o $protNdxInFile`;
     if ($xWater) {
-        `echo 0 3 0 | editconf -f $protInFile -n $protNdxInFile -d 5 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
+        `echo 0 3 0 | editconf -f $protInFile -n $protNdxInFile -d 8 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
     }
     else {
-        `echo 1 3 1 | editconf -f $protInFile -n $protNdxInFile -d 5 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
+        `echo 1 3 1 | editconf -f $protInFile -n $protNdxInFile -d 8 -princ -o oriented.princ.gro 1>> editconf.log 2>> editconf.log`;
     }
     ############################################################################
 
@@ -1170,6 +1171,7 @@ sub detectBelts {
                      'hphobCent' => $z,
                      'hphobMin'  => $hphobRangeMin,
                      'hphobMax'  => $hphobRangeMax);
+#            printf("  REPORT: LS = %9.3f at z >= %7.3f and z <= %7.3f (Angstrom)\n", $beltScore, $hphobRangeMin*$gridDeltaZ*10, $hphobRangeMax*$gridDeltaZ*10);
         }
 
 
