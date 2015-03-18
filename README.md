@@ -4,11 +4,13 @@ Automatic membrane protein orientation and alignment
 LAMBADA automates the adjustment of 3D membrane protein structures with lipid bilayers.
 
 :: FEATURES ::
+
 - Automatic orientation of the protein according to its hydrophobic surface profile
 - Automatic alignment of the membrane
 - Output of the combined membrane protein system ready for protein embedding 
 
 :: NEWS ::
+
 2012-09-28 The first release of LAMBADA is available for download.
 
 
@@ -33,6 +35,7 @@ Get the program help by typing:
 
 
 :: DOCUMENTATION ::
+
 We provide installation instructions and a manual on this program's project page.
 
 Example applications of LAMBADA in combination with the protein embedding procedure can be found on the project page of InflateGRO2.
@@ -40,6 +43,7 @@ Example applications of LAMBADA in combination with the protein embedding proced
 
 
 :: REFERENCES ::
+
 If you use LAMBADA for publication, please cite
 Schmidt, T. H. & Kandt, C. LAMBADA & InflateGRO2: Efficient Membrane Alignment and Insertion of Membrane Proteins for Molecular Dynamics Simulations. Biophysical Journal 102, 173a (2012). http://dx.doi.org/10.1016/j.bpj.2011.11.938 
 
@@ -52,6 +56,7 @@ For geeks we provide a QR Code, referencing to this Google Project page:
 
 
 :: RELATED PROJECTS ::
+
 After using the LAMBADA protein orientation you can use our new version of the commonly used embedding routine InflateGRO2:
     https://github.com/THSchmidt/inflategro2 
 
