@@ -52,7 +52,7 @@ my $orient        = 1;                    # Orient the protein.
 my $hsprofOutFile = '';                   # Output file of the hydrophilicity-surface score (profile).
 my $cavityExcl    = 1;                    # Exclude charged surface residue detection for protein internal volumes.
 my $gridDeltaZ    = 0.3;                  # Grid size to detect the area of the protein [nm].
-my $lipidResname  = '^P[OI]P[ACEG]?$';    # Regex for the automatic detection of lipid molecules in the membrane GRO file.
+my $lipidResname  = '^(D|P)(A|I|L|O|P|U)P[ACEGIS123]?$';    # Regex for the automatic detection of lipid molecules in the membrane GRO file.
 my $lsLandscape   = 0;                    # Determine and write out the energy landscape.
 my $angRangeLimit = 5;                    # For protein orientation: stop if recursive refinement of the rotation angle is less than this value.
 #my $nMembranes    = 1;
@@ -336,6 +336,7 @@ unless (defined $beltZCenter) {
 
 ### Translate all bilayer atoms to the center (z-axis) of the hydrophob. belt. #
 my $zTranslVec = $beltZCenter - $membZCenter;
+# print $zTranslVec . "  $membZCenter $beltZCenter\n";
 zTranslateGroup(\@membAtomIds, $membData{'atoms'}, $zTranslVec);
 ################################################################################
 
@@ -676,6 +677,7 @@ sub getAtomIdsByResname {
     for (my $i=1; $i<@{$atomDataRef}; $i++) {
         push(@atomIds, $i) if $$atomDataRef[$i]{'resName'} =~ /$resnameRegex/;
     }
+#    print "Found " . scalar(@atomIds) . " atoms of the bilayer\n"; exit;
     return @atomIds;
 }
 
