@@ -13,6 +13,7 @@ LAMBADA automates the adjustment of 3D membrane protein structures with lipid bi
 
 
 :: INSTALLATION & QUICK START ::
+
 1. Download the LAMBADA archive from the project download website.
 2. Unpack the LAMBADA archive
    > tar -xvzf lambada.tar.gz
